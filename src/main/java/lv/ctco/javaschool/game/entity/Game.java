@@ -32,4 +32,14 @@ public class Game {
             throw new IllegalArgumentException();
         }
     }
+
+    public void setPlayerActive(User player, boolean isActive) {
+        if (player.equals(player1)) {
+            player1Active = isActive;
+        } else if (player.equals(player2)) {
+            player2Active = isActive;
+        } else {
+            throw new IllegalArgumentException();
+        }
+    }
 }

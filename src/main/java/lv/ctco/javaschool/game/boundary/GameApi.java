@@ -6,6 +6,7 @@ import lv.ctco.javaschool.auth.control.UserStore;
 import lv.ctco.javaschool.auth.entity.domain.User;
 import lv.ctco.javaschool.game.control.GameStore;
 import lv.ctco.javaschool.game.entity.Game;
+import lv.ctco.javaschool.game.entity.GameDto;
 import lv.ctco.javaschool.game.entity.GameStatus;
 
 import javax.annotation.security.RolesAllowed;
@@ -15,6 +16,7 @@ import javax.json.JsonObject;
 import javax.json.JsonValue;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import java.util.Map;
@@ -64,7 +66,30 @@ public class GameApi {
                     log.info(pair.getKey() + " - " + pair.getValue());
                 }
             }
+            g.setPlayerActive(currentUser, false);
         });
+    }
+
+    @GET
+    @RolesAllowed({"ADMIN", "USER"})
+    @Path("/status")
+    public GameDto getGameStatus() {
+        User currentUser = userStore.getCurrentUser();
+        Optional<Game> game = gameStore.getOpenGameFor(currentUser);
+
+/*  My version
+        if (game.isPresent()){
+            GameDto gameDto = new GameDto();
+            gameDto.setStatus( game.get().getStatus());
+            return gameDto;
+        }{  throw new IllegalStateException();  }     */
+
+        return game.map(g->{
+            GameDto dto = new GameDto();
+            dto.setStatus( g.getStatus());
+            dto.setPlayerActive( g.isPlayerActive(currentUser) );
+            return dto;
+        }).orElseThrow(IllegalStateException::new);
     }
 
 
