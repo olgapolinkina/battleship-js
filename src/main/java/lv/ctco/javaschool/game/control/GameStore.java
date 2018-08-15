@@ -9,6 +9,7 @@ import lv.ctco.javaschool.game.entity.GameStatus;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import java.util.List;
 import java.util.Optional;
 
 @Stateless
@@ -80,4 +81,26 @@ public class GameStore {
         }
     }
 
+    public void setShips(Game game, User player, boolean targetArea, List<String> ships) {
+        clearField(game, player, targetArea);
+        ships.stream().map(addr->{
+            Cell c = new Cell();
+            c.setGame(game);
+            c.setUser(player);
+            c.setTargetArea(targetArea);
+            c.setAddress(addr);
+            return c;
+        }).forEach(c -> em.persist(c));
+    }
+
+    private void clearField(Game game, User player, boolean targetArea) {
+        List<Cell> cell = em.createQuery("select c from Cell c " +
+                                "where c.game=:game and c.user=:user " +
+                                "  and c.targetArea=:target", Cell.class)
+                .setParameter("game", game)
+                .setParameter("user", player)
+                .setParameter("target", targetArea)
+                .getResultList();
+        cell.forEach(c -> em.remove(c));
+    }
 }

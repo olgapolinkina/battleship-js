@@ -69,7 +69,6 @@
             registerBtn.classList.add("w3-hide");
         }
     }
-
     function login() {
         hideError();
         console.log("start login");
@@ -96,7 +95,6 @@
             }
         })
     }
-
     function register() {
         hideError();
         console.log("start registration");
@@ -146,7 +144,6 @@
             }
         })
     }
-
     function hideError() {
         var errorPanel = document.getElementById("error-panel");
         errorPanel.classList.add("w3-hide");

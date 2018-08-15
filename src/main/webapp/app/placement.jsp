@@ -11,7 +11,7 @@
 <div id="wait-another" class="w3-hide">
     <h1>Please wait another player</h1>
 </div>
-< id="placement-field" class="w3-hide">
+<div id="placement-field" class="w3-hide">
     <table style="border:1px solid black; border-collapse: collapse;">
         <tr style="vertical-align:middle; border-bottom:1pt solid black;">
             <td style="border-right:1pt solid black;">&nbsp;</td>
@@ -52,7 +52,7 @@
             "method": "POST",
             headers: {
                 'Accept': 'application/json',
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify(data)
         }).then(function (response) {
@@ -77,9 +77,14 @@
                 document.getElementById("placement-field").classList.remove("w3-hide");
                 document.getElementById("wait-another").classList.add("w3-hide");
             } else {
-                document.getElementById("placement-field").classList.add("w3-hide");
-                document.getElementById("wait-another").classList.remove("w3-hide");
-                window.setTimeout(function () { checkStatus(); }, 1000);
+                if (game.status === "STARTED") {
+                    console.log("users are ready for the game");
+                    location.href = "<c:url value='/app/game.jsp'/>";
+                } else {
+                    document.getElementById("placement-field").classList.add("w3-hide");
+                    document.getElementById("wait-another").classList.remove("w3-hide");
+                    window.setTimeout(function () {checkStatus(); }, 1000);
+                }
             }
         });
     }

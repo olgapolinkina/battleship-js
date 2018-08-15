@@ -15,7 +15,6 @@
                 location.href = "/";
             });
     }
-
     function startGame() {
         fetch("<c:url value='/api/game'/>", {"method": "POST"})
             .then(function (response) {
