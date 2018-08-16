@@ -146,7 +146,6 @@
             }
         }).then(function (response) {
             console.log("DONE");
-            checked.classList.add("w3-hide");
             checkActivePlayer();
         });
     }
@@ -188,11 +187,15 @@
         }).then(function (cells) {
             console.log(JSON.stringify(cells));
             cells.forEach(function (c) {
-                var id, tblCelll
+                var id, tblCelll, checkbox;
                 for(i=1;i<=2;i++) {
                     id = (c.targetArea ? "f" : "m") +i.toString()+ c.address;
                     tblCell = document.getElementById(id);
                     tblCell.className = c.state;
+                    if (c.targetArea) {
+                        var checkbox = document.getElementById(c.address);
+                        checkbox.classList.add("w3-hide");
+                    }
                 }
             });
         });
