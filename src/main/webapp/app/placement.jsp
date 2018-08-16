@@ -12,22 +12,22 @@
     <h1>Please wait another player</h1>
 </div>
 <div id="placement-field" class="w3-hide">
-    <table style="border:1px solid black; border-collapse: collapse;">
+    <table style="border:1pt solid black; border-collapse: collapse;">
         <tr style="vertical-align:middle; border-bottom:1pt solid black;">
-            <td style="border-right:1pt solid black;">&nbsp;</td>
+            <td style="border-right:1pt solid black; border-bottom:1px dotted black;"> </td>
             <c:forTokens items="A,B,C,D,E,F,G,H,I,J" delims="," var="col">
-                <td style="text-align:center; background-color: #f2f2f2; height:15pt; width:15pt;">
+                <td style="text-align:center; border-right:1px dotted black; background-color: #f2f2f2; height:15pt; width:15pt;">
                     <c:out value="${col}"/>
                 </td>
             </c:forTokens>
         </tr>
         <c:forTokens items="1,2,3,4,5,6,7,8,9,10" delims="," var="row">
             <tr>
-                <td style="text-align:right; background-color: #f2f2f2; height:15pt; padding-right: 3px; border-right:1pt solid black;">
+                <td style="text-align:right; border-bottom:1px dotted black; background-color: #f2f2f2; height:15pt; padding-right: 3px; border-right:1pt solid black;">
                     <c:out value="${row}"/>
                 </td>
                 <c:forTokens items="A,B,C,D,E,F,G,H,I,J" delims="," var="col">
-                    <td style="text-align:center; background-color: #ffffff; height:15pt; width:15pt;">
+                    <td style="text-align:center; background-color: #ffffff; height:15pt; width:15pt; border: 1px dimgray dotted">
                         <input type="checkbox" id="${col}${row}" onchange="cellClicked('${col}${row}')">
                     </td>
                 </c:forTokens>

@@ -27,4 +27,12 @@ public class Cell {
     private String address;
 
     private CellState state;
+
+    public CellStateDto getCellStateDto(Cell cell) {
+        CellStateDto dto = new CellStateDto();
+        dto.setAddress( cell.getAddress() );
+        dto.setState( cell.getState() );
+        dto.setTargetArea( cell.isTargetArea() );
+        return dto;
+    }
 }

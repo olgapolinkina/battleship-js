@@ -1,24 +1,26 @@
 package lv.ctco.javaschool.game.boundary;
 
 
+import com.google.gson.Gson;
 import lombok.extern.java.Log;
 import lv.ctco.javaschool.auth.control.UserStore;
 import lv.ctco.javaschool.auth.entity.domain.User;
 import lv.ctco.javaschool.game.control.GameStore;
-import lv.ctco.javaschool.game.entity.Game;
-import lv.ctco.javaschool.game.entity.GameDto;
-import lv.ctco.javaschool.game.entity.GameStatus;
+import lv.ctco.javaschool.game.entity.*;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.json.JsonArray;
 import javax.json.JsonObject;
+import javax.json.JsonString;
 import javax.json.JsonValue;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +70,7 @@ public class GameApi {
                 for (Map.Entry<String, JsonValue> pair : field.entrySet()) {
                     log.info(pair.getKey() + " - " + pair.getValue());
                     String addr = pair.getKey();
-                    String value = pair.getValue().toString();
+                    String value = ((JsonString) pair.getValue()).getString();
                     if ("SHIP".equals(value)){
                         ships.add(addr);
                     }
@@ -101,8 +103,8 @@ public class GameApi {
 
     @GET
     @RolesAllowed({"ADMIN", "USER"})
-    @Path("/start")
-    public GameDto getGameStartSettings() {
+    @Path("/turn")
+    public GameDto getPlayerTurnSettings() {
         User currentUser = userStore.getCurrentUser();
         Optional<Game> game = gameStore.getOpenGameFor(currentUser);
         return game.map(g->{
@@ -113,17 +115,47 @@ public class GameApi {
         }).orElseThrow(IllegalStateException::new);
     }
 
+    @GET
+    @RolesAllowed({"ADMIN", "USER"})
+    @Path("/cells")
+    public String getShipsPlacementList() {
+        User currentUser = userStore.getCurrentUser();
+        Optional<Game> game = gameStore.getOpenGameFor(currentUser);
+        return game.map(g->{
+            List<CellStateDto> dto = gameStore.getCellsForCurrentUser(g, currentUser);
+            return new Gson().toJson(dto);
+        }).orElseThrow(IllegalStateException::new);
+    }
+
+
+
+
     @POST
     @RolesAllowed({"ADMIN", "USER"})
-    @Path("/fire")
-    public void getFirePosistion() {
+    @Path("/fire/{address}")
+    public void markFirePosistion(@PathParam("address") String address) {
         User currentUser = userStore.getCurrentUser();
         Optional<Game> game = gameStore.getOpenGameFor(currentUser);
         game.ifPresent(g->{
+            User rivalUser = g.getRivalTo(currentUser);
+            Optional<Cell> rivalCell = gameStore.getCellStatus(g, rivalUser, address,false);
+            CellState rivalCellState;
+            if (rivalCell.isPresent()) {
+                rivalCellState = rivalCell.get().getState();
+            } else { rivalCellState = CellState.EMPTY; }
+
+            if (rivalCellState.equals(CellState.EMPTY)) {
+                gameStore.setCellState(g,currentUser,address,true,CellState.MISS);
+                gameStore.setCellState(g,rivalUser,address,false,CellState.MISS);
+            } else if (rivalCellState.equals(CellState.SHIP)) {
+                gameStore.setCellState(g,currentUser,address,true,CellState.HIT);
+                rivalCell.get().setState(CellState.HIT);
+            }
+
             g.setPlayer1Active( !g.isPlayer1Active() );
             g.setPlayer2Active( !g.isPlayer2Active() );
         });
-//        .orElseThrow(IllegalStateException::new);
     }
+
 
 }

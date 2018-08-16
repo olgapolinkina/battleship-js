@@ -1,14 +1,12 @@
 package lv.ctco.javaschool.game.control;
 
 import lv.ctco.javaschool.auth.entity.domain.User;
-import lv.ctco.javaschool.game.entity.Cell;
-import lv.ctco.javaschool.game.entity.CellState;
-import lv.ctco.javaschool.game.entity.Game;
-import lv.ctco.javaschool.game.entity.GameStatus;
+import lv.ctco.javaschool.game.entity.*;
 
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -81,6 +79,22 @@ public class GameStore {
         }
     }
 
+
+    public Optional<Cell>  getCellStatus(Game game, User player, String address, boolean targetArea) {
+        return em.createQuery(
+                "select c from Cell c " +
+                        "where c.game = :game " +
+                        "  and c.user = :user " +
+                        "  and c.targetArea = :target " +
+                        "  and c.address = :address", Cell.class)
+                .setParameter("game", game)
+                .setParameter("user", player)
+                .setParameter("target", targetArea)
+                .setParameter("address", address)
+                .getResultStream()
+                .findFirst();
+    }
+
     public void setShips(Game game, User player, boolean targetArea, List<String> ships) {
         clearField(game, player, targetArea);
         ships.stream().map(addr->{
@@ -89,8 +103,20 @@ public class GameStore {
             c.setUser(player);
             c.setTargetArea(targetArea);
             c.setAddress(addr);
+            c.setState(CellState.SHIP);
             return c;
         }).forEach(c -> em.persist(c));
+    }
+
+    public List<CellStateDto> getCellsForCurrentUser(Game game, User player) {
+        List<Cell> cell = em.createQuery("select c from Cell c " +
+                "where c.game=:game and c.user=:user", Cell.class)
+                .setParameter("game", game)
+                .setParameter("user", player)
+                .getResultList();
+        List<CellStateDto> data = new ArrayList<>();
+        cell.forEach(c -> data.add( c.getCellStateDto(c) ));
+        return data;
     }
 
     private void clearField(Game game, User player, boolean targetArea) {
@@ -103,4 +129,8 @@ public class GameStore {
                 .getResultList();
         cell.forEach(c -> em.remove(c));
     }
+
+
+
+
 }

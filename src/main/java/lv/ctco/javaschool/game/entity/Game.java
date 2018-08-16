@@ -42,4 +42,14 @@ public class Game {
             throw new IllegalArgumentException();
         }
     }
+
+    public User getRivalTo(User player) {
+        if (getPlayer1().equals(player)) {
+            return getPlayer2();
+        } else {
+            return getPlayer1();
+        }
+    }
+
+
 }
