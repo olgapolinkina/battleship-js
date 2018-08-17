@@ -39,6 +39,32 @@
 
     }
 
+/*
+
+ <table id="id01">
+ <tr>
+ <th>Customer</th>
+ <th>City</th>
+ <th>Country</th>
+ </tr>
+ <tr w3-repeat="customers">
+ <td>{{CustomerName}}</td>
+ <td>{{City}}</td>
+ <td>{{Country}}</td>
+ </tr>
+ </table>
+
+ <script>
+ w3.getHttpObject("customers.js", myFunction);
+
+ function myFunction(myObject) {
+ w3.displayObject("id01", myObject);
+ }
+<!--/script>
+     */
+
+
+
 </script>
 </body>
 </html>
