@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Path("/game")
 @Stateless
@@ -37,6 +38,8 @@ public class GameApi {
     @Inject
     private GameStore gameStore;
 
+    /*      for start.jsp
+     * Add player to existing game or creates a new one     */
     @POST
     @RolesAllowed({"ADMIN", "USER"})
     public void startGame() {
@@ -58,9 +61,11 @@ public class GameApi {
         }
     }
 
+    /*      for placement.jsp
+     * Saves to DB player ships     */
     @POST
     @RolesAllowed({"ADMIN", "USER"})
-    @Path("/cells")
+    @Path("/saveships")
     public void setShips(JsonObject field) {
         User currentUser = userStore.getCurrentUser();
         Optional<Game> game = gameStore.getStartedGameFor(currentUser, GameStatus.PLACEMENT);
@@ -87,6 +92,8 @@ public class GameApi {
         });
     }
 
+    /*      for placement.jsp
+     * Responsible for waiting for other player and fill of game board     */
     @GET
     @RolesAllowed({"ADMIN", "USER"})
     @Path("/status")
@@ -101,12 +108,14 @@ public class GameApi {
         }).orElseThrow(IllegalStateException::new);
     }
 
+    /*      for game.jsp & result.jsp
+     * Return Game status and which player's turn to fire      */
     @GET
     @RolesAllowed({"ADMIN", "USER"})
     @Path("/turn")
     public GameDto getPlayerTurnSettings() {
         User currentUser = userStore.getCurrentUser();
-        Optional<Game> game = gameStore.getOpenGameFor(currentUser);
+        Optional<Game> game = gameStore.getLastGameFor(currentUser);
         return game.map(g->{
             GameDto dto = new GameDto();
             dto.setStatus( g.getStatus());
@@ -115,10 +124,12 @@ public class GameApi {
         }).orElseThrow(IllegalStateException::new);
     }
 
+    /*      for game.jsp &
+     * Return All marks for ships, misses and hits for player     */
     @GET
     @RolesAllowed({"ADMIN", "USER"})
-    @Path("/cells")
-    public String getShipsPlacementList() {
+    @Path("/markers")
+    public String getUserMarksList() {
         User currentUser = userStore.getCurrentUser();
         Optional<Game> game = gameStore.getOpenGameFor(currentUser);
         return game.map(g->{
@@ -127,9 +138,8 @@ public class GameApi {
         }).orElseThrow(IllegalStateException::new);
     }
 
-
-
-
+    /*      for game.jsp
+     * Marks result of fire in DB      */
     @POST
     @RolesAllowed({"ADMIN", "USER"})
     @Path("/fire/{address}")
@@ -152,10 +162,29 @@ public class GameApi {
                 rivalCell.get().setState(CellState.HIT);
             }
 
-            g.setPlayer1Active( !g.isPlayer1Active() );
-            g.setPlayer2Active( !g.isPlayer2Active() );
+            if (gameStore.isAllShipsHit(g,rivalUser)) {
+                gameStore.uniteAllMarkers(g, currentUser);
+                gameStore.uniteAllMarkers(g, rivalUser);
+                g.setStatus(GameStatus.FINISHED);
+            } else {
+                if (rivalCellState.equals(CellState.SHIP)) return;
+                g.setPlayer1Active(!g.isPlayer1Active());
+                g.setPlayer2Active(!g.isPlayer2Active());
+            }
         });
     }
 
-
+    /*      for result.jsp
+     * Return All marks for ships, misses and hits for player     */
+    @GET
+    @RolesAllowed({"ADMIN", "USER"})
+    @Path("/result")
+    public String getAllMarksList() {
+        User currentUser = userStore.getCurrentUser();
+        Optional<Game> game = gameStore.getLastGameFor(currentUser);
+        return game.map(g->{
+            List<CellStateDto> dto = gameStore.getCellsForCurrentUser(g, currentUser);
+            return new Gson().toJson(dto);
+        }).orElseThrow(IllegalStateException::new);
+    }
 }

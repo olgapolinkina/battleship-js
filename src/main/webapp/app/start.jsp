@@ -4,7 +4,7 @@
 <head>
     <title>Title</title>
 </head>
-<body>
+<body onload="drawTopTable();">
 <button type="button" onclick="logout()">Log out</button>
 <button type="button" onclick="startGame()">Start Game</button>
 
@@ -21,6 +21,11 @@
                 location.href = "/app/placement.jsp";
             });
     }
+
+    function drawTopTable(){
+        console.log( "Top-10 players table" );
+    }
+
 </script>
 </body>
 </html>

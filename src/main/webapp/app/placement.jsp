@@ -48,7 +48,7 @@
 
     function ready() {
         console.log(JSON.stringify(data));
-        fetch("<c:url value='/api/game/cells'/>", {
+        fetch("<c:url value='/api/game/saveships'/>", {
             "method": "POST",
             headers: {
                 'Accept': 'application/json',

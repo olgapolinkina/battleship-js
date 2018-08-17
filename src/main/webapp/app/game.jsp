@@ -162,21 +162,28 @@
             return response.json();
         }).then(function (game) {
             console.log(JSON.stringify(game));
-            if (game.playerActive) {
-                document.getElementById("wait-fire").classList.remove("w3-hide");
-                document.getElementById("wait-another").classList.add("w3-hide");
+            if (game.status === "FINISHED") {
+                console.log("Game finished");
+                location.href = "<c:url value='/app/result.jsp'/>";
             } else {
-                document.getElementById("wait-fire").classList.add("w3-hide");
-                document.getElementById("wait-another").classList.remove("w3-hide");
-                window.setTimeout(function () {checkActivePlayer(); }, 1000);
+                if (game.playerActive) {
+                    document.getElementById("wait-fire").classList.remove("w3-hide");
+                    document.getElementById("wait-another").classList.add("w3-hide");
+                } else {
+                    document.getElementById("wait-fire").classList.add("w3-hide");
+                    document.getElementById("wait-another").classList.remove("w3-hide");
+                    window.setTimeout(function () {
+                        checkActivePlayer();
+                    }, 1000);
+                }
+                drawAllShips();
             }
-            drawAllShips();
         })
     }
 
     function drawAllShips() {
         console.log('GetStartSettings');
-        fetch("<c:url value='/api/game/cells'/>", {
+        fetch("<c:url value='/api/game/markers'/>", {
             "method": "GET",
             headers: {
                 'Accept': 'application/json',

@@ -52,6 +52,19 @@ public class GameStore {
                 .findFirst();
     }
 
+    public Optional<Game> getLastGameFor(User user) {
+        return em.createQuery(
+                "select g " +
+                        "from Game g " +
+                        "where g.player1 = :user " +
+                        "   or g.player2 = :user " +
+                        "order by g.id desc", Game.class)
+                .setParameter("user", user)
+                .getResultStream()
+                .findFirst();
+    }
+
+
 
     public void setCellState(Game game, User player, String address, boolean targetArea, CellState state) {
         Optional<Cell> cell = em.createQuery(
@@ -131,6 +144,39 @@ public class GameStore {
     }
 
 
+    public boolean isAllShipsHit(Game game, User player) {
+        return em.createQuery("select c from Cell c " +
+                        "where c.game = :game " +
+                        "  and c.user = :user " +
+                        "  and c.state = :state " +
+                        "  and c.targetArea = :target", Cell.class)
+                .setParameter("game", game)
+                .setParameter("user", player)
+                .setParameter("target", false)
+                .setParameter("state", CellState.SHIP)
+                .getResultList().isEmpty();
+    }
 
-
+    public void uniteAllMarkers(Game game, User player){
+        User rivalPlayer = game.getRivalTo(player);
+        em.createQuery("select c from Cell c " +
+                "where c.game = :game " +
+                "  and c.user = :user " +
+                "  and c.state = :state " +
+                "  and c.targetArea = :target", Cell.class)
+                .setParameter("game", game)
+                .setParameter("user", player)
+                .setParameter("target", false)
+                .setParameter("state", CellState.SHIP)
+                .getResultStream()
+                .map(myCell->{
+                    Cell rivalCell = new Cell();
+                    rivalCell.setGame(game);
+                    rivalCell.setUser(rivalPlayer);
+                    rivalCell.setTargetArea(true);
+                    rivalCell.setAddress(myCell.getAddress());
+                    rivalCell.setState(CellState.SHIP);
+                    return rivalCell;
+                }).forEach(c -> em.persist(c));
+    }
 }
