@@ -24,6 +24,19 @@
 
     function drawTopTable(){
         console.log( "Top-10 players table" );
+        fetch("<c:url value='/api/game/top10'/>", {
+            "method": "GET",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        }).then(function (response) {
+            return response.json();
+        }).then(function (game) {
+            console.log(JSON.stringify(game));
+        });
+
+
     }
 
 </script>

@@ -61,6 +61,16 @@ public class GameApi {
         }
     }
 
+    /*      for start.jsp
+     * Return list of top-10 players     */
+    @GET
+    @RolesAllowed({"ADMIN", "USER"})
+    @Path("/top10")
+    public String setShips(){
+        List<Top10Dto> dto = gameStore.getTop10Users();
+        return new Gson().toJson(dto);
+    }
+
     /*      for placement.jsp
      * Saves to DB player ships     */
     @POST

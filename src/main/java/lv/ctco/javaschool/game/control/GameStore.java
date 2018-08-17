@@ -179,4 +179,56 @@ public class GameStore {
                     return rivalCell;
                 }).forEach(c -> em.persist(c));
     }
+
+    public List<Top10Dto> getTop10Users(){
+        List<Top10Dto> data = new ArrayList<>();
+        List<Object[]> results = em.createQuery("SELECT c.user.username as userName, " +
+                "count(c) as hitCount, c.game " +
+                "FROM Cell c " +
+                "where c.game.status=:status " +
+                "  and ( ((c.game.player1=c.user) AND (c.game.player1Active=true)) " +
+                     "or ((c.game.player2=c.user) AND (c.game.player2Active=true)) )" +
+
+//                " AND c.targetArea=true " +
+//                "  and (c.state=:state1) or (c.state=:state2) " +
+                "group by c.game "+
+                "order by c.user.username ")
+
+                .setParameter("status", GameStatus.FINISHED)
+//                .setParameter("state1", CellState.HIT)
+//                .setParameter("state2", CellState.MISS)
+                .getResultList();
+
+//        Game prevUser = new Game();
+        for (Object[] result : results) {
+//            if (prevGame.equals( (Game) result[3] )) continue;
+
+            Top10Dto dto = new Top10Dto();
+            dto.setUserName( (String) result[0] );
+            dto.setHitCount( ((Number) result[1]).intValue() );
+//            prevGame=(Game) result[3];
+            data.add( dto );
+        }
+        return data;
+
+/*        return  em.createQuery("SELECT NEW lv.ctco.javaschool.game.entity.Top10Dto( c.user.username, count(c) ) " +
+                "FROM Cell c " +
+                "where c.game.status=:status " +
+                "  and ( (c.game.player1=c.user) AND (c.game.player1Active=true) " +
+                     "or (c.game.player2=c.user) AND (c.game.player2Active=true) )" +
+
+                " AND c.targetArea=true " +
+                "  and (c.state=:state1) or (c.state=:state2) " +
+                "group by c.user.username "+
+                "order by count(c) "
+                , Top10Dto.class)
+
+                .setParameter("status", GameStatus.FINISHED)
+                .setParameter("state1", CellState.HIT)
+                .setParameter("state2", CellState.MISS)
+                .getResultList();
+*/
+    }
+
+
 }
