@@ -194,8 +194,8 @@ public class GameStore {
     public List<Top10Dto> getTop10Users(){
         List<Top10Dto> data = new ArrayList<>();
         List<Game> game = em.createQuery(
-                "SELECT g FROM Games g" +
-                        "WHERE g.status=:status " +
+                "select g from Game g " +
+                        "where g.status=:status " +
                         "order by g.TotalVictoryHits", Game.class)
                 .setParameter("status", GameStatus.FINISHED)
                 .getResultList();
