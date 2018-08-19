@@ -66,7 +66,7 @@ public class GameApi {
     @GET
     @RolesAllowed({"ADMIN", "USER"})
     @Path("/top10")
-    public String setShips(){
+    public String drawRecordTable(){
         List<Top10Dto> dto = gameStore.getTop10Users();
         return new Gson().toJson(dto);
     }
@@ -173,9 +173,11 @@ public class GameApi {
             }
 
             if (gameStore.isAllShipsHit(g,rivalUser)) {
+                gameStore.setTotalVictoryHitCount(g, currentUser);
                 gameStore.uniteAllMarkers(g, currentUser);
                 gameStore.uniteAllMarkers(g, rivalUser);
                 g.setStatus(GameStatus.FINISHED);
+
             } else {
                 if (rivalCellState.equals(CellState.SHIP)) return;
                 g.setPlayer1Active(!g.isPlayer1Active());

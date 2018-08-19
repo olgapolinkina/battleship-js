@@ -6,9 +6,7 @@ import lv.ctco.javaschool.game.entity.*;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Stateless
 public class GameStore {
@@ -180,54 +178,41 @@ public class GameStore {
                 }).forEach(c -> em.persist(c));
     }
 
+    public void setTotalVictoryHitCount(Game game, User victoriousPlayer){
+        List<Cell> cell = em.createQuery("select c from Cell c " +
+                "where c.game=:game " +
+                "  and c.user=:user " +
+                "  and c.targetArea = :target", Cell.class)
+                .setParameter("game", game)
+                .setParameter("target", true)
+                .setParameter("user", victoriousPlayer)
+                .getResultList();
+        game.setTotalVictoryHits(cell.size());
+    }
+
+
     public List<Top10Dto> getTop10Users(){
         List<Top10Dto> data = new ArrayList<>();
-        List<Object[]> results = em.createQuery("SELECT c.user.username as userName, " +
-                "count(c) as hitCount, c.game " +
-                "FROM Cell c " +
-                "where c.game.status=:status " +
-                "  and ( ((c.game.player1=c.user) AND (c.game.player1Active=true)) " +
-                     "or ((c.game.player2=c.user) AND (c.game.player2Active=true)) )" +
-
-//                " AND c.targetArea=true " +
-//                "  and (c.state=:state1) or (c.state=:state2) " +
-                "group by c.game "+
-                "order by c.user.username ")
-
+        List<Game> game = em.createQuery(
+                "SELECT g FROM Games g" +
+                        "WHERE g.status=:status " +
+                        "order by g.TotalVictoryHits", Game.class)
                 .setParameter("status", GameStatus.FINISHED)
-//                .setParameter("state1", CellState.HIT)
-//                .setParameter("state2", CellState.MISS)
                 .getResultList();
-
-//        Game prevUser = new Game();
-        for (Object[] result : results) {
-//            if (prevGame.equals( (Game) result[3] )) continue;
-
-            Top10Dto dto = new Top10Dto();
-            dto.setUserName( (String) result[0] );
-            dto.setHitCount( ((Number) result[1]).intValue() );
-//            prevGame=(Game) result[3];
-            data.add( dto );
-        }
+        Map<String,Integer> map = new HashMap();
+        game.forEach(g ->{
+            String name;
+            if (g.isPlayer1Active()) {
+                name = g.getPlayer1().getUsername();
+            } else {
+                name = g.getPlayer2().getUsername();
+            }
+            if (!map.containsKey(name)) {
+                map.put(name, g.getTotalVictoryHits());
+                data.add( new Top10Dto(name, g.getTotalVictoryHits()));
+            }
+        });
         return data;
-
-/*        return  em.createQuery("SELECT NEW lv.ctco.javaschool.game.entity.Top10Dto( c.user.username, count(c) ) " +
-                "FROM Cell c " +
-                "where c.game.status=:status " +
-                "  and ( (c.game.player1=c.user) AND (c.game.player1Active=true) " +
-                     "or (c.game.player2=c.user) AND (c.game.player2Active=true) )" +
-
-                " AND c.targetArea=true " +
-                "  and (c.state=:state1) or (c.state=:state2) " +
-                "group by c.user.username "+
-                "order by count(c) "
-                , Top10Dto.class)
-
-                .setParameter("status", GameStatus.FINISHED)
-                .setParameter("state1", CellState.HIT)
-                .setParameter("state2", CellState.MISS)
-                .getResultList();
-*/
     }
 
 

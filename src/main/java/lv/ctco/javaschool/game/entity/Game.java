@@ -23,6 +23,8 @@ public class Game {
     @Enumerated(EnumType.STRING)
     private GameStatus status;
 
+    private int TotalVictoryHits;
+
     public boolean isPlayerActive(User player) {
         if (player.equals(player1)) {
             return player1Active;
