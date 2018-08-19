@@ -63,7 +63,6 @@ public class GameStore {
     }
 
 
-
     public void setCellState(Game game, User player, String address, boolean targetArea, CellState state) {
         Optional<Cell> cell = em.createQuery(
                 "select c from Cell c " +
@@ -91,7 +90,7 @@ public class GameStore {
     }
 
 
-    public Optional<Cell>  getCellStatus(Game game, User player, String address, boolean targetArea) {
+    public Optional<Cell> getCellStatus(Game game, User player, String address, boolean targetArea) {
         return em.createQuery(
                 "select c from Cell c " +
                         "where c.game = :game " +
@@ -108,7 +107,7 @@ public class GameStore {
 
     public void setShips(Game game, User player, boolean targetArea, List<String> ships) {
         clearField(game, player, targetArea);
-        ships.stream().map(addr->{
+        ships.stream().map(addr -> {
             Cell c = new Cell();
             c.setGame(game);
             c.setUser(player);
@@ -126,14 +125,14 @@ public class GameStore {
                 .setParameter("user", player)
                 .getResultList();
         List<CellStateDto> data = new ArrayList<>();
-        cell.forEach(c -> data.add( c.getCellStateDto(c) ));
+        cell.forEach(c -> data.add(c.getCellStateDto(c)));
         return data;
     }
 
     private void clearField(Game game, User player, boolean targetArea) {
         List<Cell> cell = em.createQuery("select c from Cell c " +
-                                "where c.game=:game and c.user=:user " +
-                                "  and c.targetArea=:target", Cell.class)
+                "where c.game=:game and c.user=:user " +
+                "  and c.targetArea=:target", Cell.class)
                 .setParameter("game", game)
                 .setParameter("user", player)
                 .setParameter("target", targetArea)
@@ -144,10 +143,10 @@ public class GameStore {
 
     public boolean isAllShipsHit(Game game, User player) {
         return em.createQuery("select c from Cell c " +
-                        "where c.game = :game " +
-                        "  and c.user = :user " +
-                        "  and c.state = :state " +
-                        "  and c.targetArea = :target", Cell.class)
+                "where c.game = :game " +
+                "  and c.user = :user " +
+                "  and c.state = :state " +
+                "  and c.targetArea = :target", Cell.class)
                 .setParameter("game", game)
                 .setParameter("user", player)
                 .setParameter("target", false)
@@ -155,7 +154,7 @@ public class GameStore {
                 .getResultList().isEmpty();
     }
 
-    public void uniteAllMarkers(Game game, User player){
+    public void uniteAllMarkers(Game game, User player) {
         User rivalPlayer = game.getRivalTo(player);
         em.createQuery("select c from Cell c " +
                 "where c.game = :game " +
@@ -167,7 +166,7 @@ public class GameStore {
                 .setParameter("target", false)
                 .setParameter("state", CellState.SHIP)
                 .getResultStream()
-                .map(myCell->{
+                .map(myCell -> {
                     Cell rivalCell = new Cell();
                     rivalCell.setGame(game);
                     rivalCell.setUser(rivalPlayer);
@@ -178,7 +177,7 @@ public class GameStore {
                 }).forEach(c -> em.persist(c));
     }
 
-    public void setTotalVictoryHitCount(Game game, User victoriousPlayer){
+    public void setTotalVictoryHitCount(Game game, User victoriousPlayer) {
         List<Cell> cell = em.createQuery("select c from Cell c " +
                 "where c.game=:game " +
                 "  and c.user=:user " +
@@ -191,7 +190,7 @@ public class GameStore {
     }
 
 
-    public List<Top10Dto> getTop10Users(){
+    public List<Top10Dto> getTop10Users() {
         List<Top10Dto> data = new ArrayList<>();
         List<Game> game = em.createQuery(
                 "select g from Game g " +
@@ -199,8 +198,9 @@ public class GameStore {
                         "order by g.TotalVictoryHits", Game.class)
                 .setParameter("status", GameStatus.FINISHED)
                 .getResultList();
-        Map<String,Integer> map = new HashMap();
-        game.forEach(g ->{
+        Map<String, Integer> map = new HashMap();
+
+        game.forEach(g -> {
             String name;
             if (g.isPlayer1Active()) {
                 name = g.getPlayer1().getUsername();
@@ -209,9 +209,13 @@ public class GameStore {
             }
             if (!map.containsKey(name)) {
                 map.put(name, g.getTotalVictoryHits());
-                data.add( new Top10Dto(name, g.getTotalVictoryHits()));
+                data.add(new Top10Dto(data.size()+1, name, g.getTotalVictoryHits()));
             }
         });
+        for (int i=data.size()+1; i<=10; i++){
+            data.add(new Top10Dto(i, " - empty - ",0));
+        }
+
         return data;
     }
 
